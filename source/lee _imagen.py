@@ -20,6 +20,7 @@ X_RECARGA_DER = -10
 X_RECARGA_IZQ = X_MAX + 10
 
 
+
 def genera_rangos(n):
     a = range(256)
     k, m = divmod(len(a), n)
