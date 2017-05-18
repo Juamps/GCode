@@ -20,7 +20,6 @@ X_RECARGA_DER = -10
 X_RECARGA_IZQ = X_MAX + 10
 
 
-
 def genera_rangos(n):
     a = range(256)
     k, m = divmod(len(a), n)
@@ -96,6 +95,7 @@ def recarga(ind_x, arch):
     arch.write("G00 Z" + str(PRES_Z_RECARGA) + "\n")
     arch.write("G00 Z" + str(Z_MAX) + "\n")
 
+
 def pintado(mat, direc, path_archivo):
     # direc = 0: pinta horizontal
     # direc = 1: pinta vertical
@@ -155,7 +155,7 @@ def genera_gcode(dict_colores):
         # exit()
         pintado(matriz_im, divmod(cont_col, 2)[1], path_archivo)
 
-
+#
 if __name__ == '__main__':
     # Crea directorio con nombre unico
     dir_path = "../files/prueba_" + str(datetime.datetime.now()).split(".")[0].replace(" ", "_")
