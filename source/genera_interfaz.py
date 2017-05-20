@@ -1,67 +1,105 @@
 from Tkinter import *
+import tkMessageBox
 import lee_imagen
+import ctypes
+from PIL import Image  # read image
 
-variables = 'Cantidad de grises', \
-            'Path de la imagen', \
-            'X inicial',\
-            'X max', \
-            'Paso X',\
-            'Y inicial', \
-            'Y max', \
-            'Paso Y', \
+variables = 'Path de la imagen', \
+            'Cantidad de grises', \
+            'Paso (mm)', \
+            'Ancho Canvas (X max 1200mm)', \
+            'Largo Canvas (Y max 2400mm)', \
+            'X inicial (coord)',\
+            'Y inicial (coord)', \
             'Z max', \
             'Presion en recarga (Z)', \
             'Presion en pintado (Z)', \
-            'Modo de Pintado \n(0 Puntual; 1 Semi diagonal post; 2 Semi diagonal pre)', \
-            'Puntos antes de recarga', \
-            'Coord X de recarga derecha', \
-            'Coordenada X de recarga izquierda'
+            'Modo de Pintado \n  0 Puntual\n  1 Semi diagonal post\n  2 Semi diagonal pre', \
+            'Trazos antes de recargar ', \
+            'Coordenada X de recarga derecha\n(mm despues de canvas, ej. 5)', \
+            'Coordenada X de recarga izquierda\n(mm antes de canvas, ej. -5)'
 
 
+def genera_codigo(entries):
+    lee_imagen.PATH = entries[0][1].get()
+    lee_imagen.CANT_COLORES = int(entries[1][1].get())
+    lee_imagen.PASO_X = int(entries[2][1].get())
+    lee_imagen.PASO_Y = int(entries[2][1].get())
+    lee_imagen.X_CANVAS = int(entries[3][1].get())
+    lee_imagen.Y_CANVAS = int(entries[4][1].get())
+    lee_imagen.X_INIT = int(entries[5][1].get())
+    lee_imagen.Y_INIT = int(entries[6][1].get())
+    lee_imagen.Z_MAX = int(entries[7][1].get())
+    lee_imagen.PRES_Z_RECARGA = int(entries[8][1].get())
+    lee_imagen.PRES_Z_PINTA = int(entries[9][1].get())
+    lee_imagen.MODO_PINTURA = int(entries[10][1].get())  # 0 Puntual; 1 Semi diagonal post; 2 Semi diagonal pre
+    lee_imagen.RECARGA = int(entries[11][1].get())
+    lee_imagen.X_RECARGA_DER = int(entries[12][1].get())
+    lee_imagen.X_RECARGA_IZQ = int(entries[13][1].get())
+    ## Calculadas
+    lee_imagen.X_MAX = int(lee_imagen.X_CANVAS) / int(lee_imagen.PASO_X)
+    lee_imagen.Y_MAX = int(lee_imagen.Y_CANVAS) / int(lee_imagen.PASO_Y)
 
-lee_imagen.CANT_COLORES = 8
-lee_imagen.PATH = '../files/wn0.png'
-lee_imagen.X_INIT = -3
-lee_imagen.X_MAX = 120
-lee_imagen.PASO_X = 3
-lee_imagen.Y_INIT = -3
-lee_imagen.Y_MAX = 160
-lee_imagen.PASO_Y = 3
-lee_imagen.Z_MAX = 5
-lee_imagen.PRES_Z_RECARGA = -8
-lee_imagen.PRES_Z_PINTA = -5
-lee_imagen.MODO_PINTURA = 0  # 0 Puntual; 1 Semi diagonal post; 2 Semi diagonal pre
-lee_imagen.RECARGA = 10
-lee_imagen.X_RECARGA_DER = -10
-lee_imagen.X_RECARGA_IZQ = lee_imagen.X_MAX + 10
-
-def fetch(entries):
-    for entry in entries:
-        field = entry[0]
-        text  = entry[1].get()
-        print('%s: "%s"' % (field, text))
+    ## Leer imagen para validar tamanos
+    im = Image.open(lee_imagen.PATH)
+    # Largo y ancho de la imagen
+    w, h = im.size
+    ans = True
+    if lee_imagen.X_CANVAS < w * lee_imagen.PASO_X:
+        ##  Styles:
+        ##  0 : OK
+        ##  1 : OK | Cancel
+        ##  2 : Abort | Retry | Ignore
+        ##  3 : Yes | No | Cancel
+        ##  4 : Yes | No
+        ##  5 : Retry | No
+        ##  6 : Cancel | Try Again | Continue
+        ans = tkMessageBox.askyesno("Warning!", "La imagen excede el ancho del canvas. Continuar?")
+    elif lee_imagen.Y_CANVAS < w * lee_imagen.PASO_Y:
+        ans = tkMessageBox.askyesno("Warning!", "La imagen excede el largo del canvas. Continuar?")
+    if ans:
+        lee_imagen.main()
 
 
-def makeform(root, variables):
+def iniciales(entries):
+    entries[0][1].insert(END, lee_imagen.PATH)
+    entries[1][1].insert(END, lee_imagen.CANT_COLORES)
+    entries[2][1].insert(END, lee_imagen.PASO_X)
+    entries[3][1].insert(END, lee_imagen.X_CANVAS)
+    entries[4][1].insert(END, lee_imagen.Y_CANVAS)
+    entries[5][1].insert(END, lee_imagen.X_INIT)
+    entries[6][1].insert(END, lee_imagen.Y_INIT)
+    entries[7][1].insert(END, lee_imagen.Z_MAX)
+    entries[8][1].insert(END, lee_imagen.PRES_Z_RECARGA)
+    entries[9][1].insert(END, lee_imagen.PRES_Z_PINTA)
+    entries[10][1].insert(END, lee_imagen.MODO_PINTURA)  # 0 Puntual; 1 Semi diagonal post; 2 Semi diagonal pre
+    entries[11][1].insert(END, lee_imagen.RECARGA)
+    entries[12][1].insert(END, lee_imagen.X_RECARGA_DER)
+    entries[13][1].insert(END, lee_imagen.X_RECARGA_IZQ - lee_imagen.X_CANVAS)
+
+
+def crea_forma(root, variables):
     entries = []
     for var in variables:
         row = Frame(root)
-        lab = Label(row, width=50, text=var, anchor='w', justify='left')
+        lab = Label(row, width=30, text=var, anchor='w', justify='left')
         ent = Entry(row)
         row.pack(side=TOP, fill=X, padx=5, pady=5)
         lab.pack(side=LEFT)
         ent.pack(side=RIGHT, expand=YES, fill=X)
         entries.append((var, ent))
+    iniciales(entries)
     return entries
 
 
 if __name__ == '__main__':
     root = Tk()
-    ents = makeform(root, variables)
-    root.bind('<Return>', (lambda event, e=ents: fetch(e)))
-    b1 = Button(root, text='Show',
-          command=(lambda e=ents: fetch(e)))
-    b1.pack(side=LEFT, padx=5, pady=5)
-    b2 = Button(root, text='Quit', command=root.quit)
-    b2.pack(side=LEFT, padx=5, pady=5)
+    ents = crea_forma(root, variables)
+    root.bind('<Return>', (lambda event, e=ents: genera_codigo(e)))
+    b2 = Button(root, text='Salir', command=root.quit)
+    b2.pack(side=RIGHT, padx=5, pady=20)
+    b1 = Button(root, text='Genera g-code',
+                command=(lambda e=ents: genera_codigo(e)))
+    b1.pack(side=RIGHT, padx=5, pady=20)
     root.mainloop()
+

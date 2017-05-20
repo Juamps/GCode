@@ -3,8 +3,11 @@ import numpy as np  # convert image to matrix
 import os
 import datetime
 
-CANT_COLORES = 8
+
 PATH = '../files/wn0.png'
+CANT_COLORES = 8
+X_CANVAS = 250
+Y_CANVAS = 250
 X_INIT = -3
 X_MAX = 120
 PASO_X = 3
@@ -16,8 +19,11 @@ PRES_Z_RECARGA = -8
 PRES_Z_PINTA = -5
 MODO_PINTURA = 0  # 0 Puntual; 1 Semi diagonal post; 2 Semi diagonal pre
 RECARGA = 10
-X_RECARGA_DER = -10
-X_RECARGA_IZQ = X_MAX + 10
+X_RECARGA_DER = 5
+X_RECARGA_IZQ = X_CANVAS - 5
+
+
+global dir_path, w, h
 
 
 def genera_rangos(n):
@@ -27,6 +33,7 @@ def genera_rangos(n):
 
 
 def trunca_imagen(imagen):
+    global dir_path, w, h
     # Convertir a escala de grises
     im = imagen.convert('L')
     # Genera rangos de color
@@ -49,6 +56,7 @@ def trunca_imagen(imagen):
 
 
 def genera_arreglos_por_color(arr_img):
+    global dir_path, w, h
     # Selecciona valores unicos de la lista
     vals_unicos = sorted(list(set(arr_img)))
     # Crea diccionario para almacenar las matrices separadas
@@ -62,41 +70,44 @@ def genera_arreglos_por_color(arr_img):
 
 
 def gesto_pintura(ind_x, ind_y, gesto, direc, arch):
+    global dir_path, w, h
     if gesto == 1:
         #  pinta semi diagonal post
-        inst = "G00 X" + str(ind_x*PASO_X) + " Y" + str(ind_y*PASO_Y) + " Z" + str(Z_MAX) + "\n"
+        inst = "G01 X" + str(ind_x*PASO_X) + " Y" + str(ind_y*PASO_Y) + " Z" + str(Z_MAX) + "\n"
         arch.write(inst)
-        arch.write("G00 Z" + str(PRES_Z_PINTA) + "\n")
+        arch.write("G01 Z" + str(PRES_Z_PINTA) + "\n")
     elif gesto == 2:
         # pinta semi diagonal pre
-        inst = "G00 X" + str(ind_x*PASO_X) + " Y" + str(ind_y*PASO_Y) + " Z" + str(PRES_Z_PINTA) + "\n"
+        inst = "G01 X" + str(ind_x*PASO_X) + " Y" + str(ind_y*PASO_Y) + " Z" + str(PRES_Z_PINTA) + "\n"
         arch.write(inst)
-        arch.write("G00 Z" + str(Z_MAX) + "\n")
+        arch.write("G01 Z" + str(Z_MAX) + "\n")
     else:
         #  pinta puntual
         if direc == "ver":
-            inst = "G00 X" + str(ind_x*PASO_X) + " Y" + str(ind_y*PASO_Y) + "\n"
+            inst = "G01 X" + str(ind_x*PASO_X) + " Y" + str(ind_y*PASO_Y) + "\n"
             arch.write(inst)
-            arch.write("G00 Z" + str(PRES_Z_PINTA) + "\n")
-            arch.write("G00 Z" + str(Z_MAX) + "\n")
+            arch.write("G01 Z" + str(PRES_Z_PINTA) + "\n")
+            arch.write("G01 Z" + str(Z_MAX) + "\n")
         else:
-            inst = "G00 X" + str(ind_x*PASO_X) + " Y" + str(ind_y*PASO_Y) + "\n"
+            inst = "G01 X" + str(ind_x*PASO_X) + " Y" + str(ind_y*PASO_Y) + "\n"
             arch.write(inst)
-            arch.write("G00 Z" + str(PRES_Z_PINTA) + "\n")
-            arch.write("G00 Z" + str(Z_MAX) + "\n")
+            arch.write("G01 Z" + str(PRES_Z_PINTA) + "\n")
+            arch.write("G01 Z" + str(Z_MAX) + "\n")
 
 
 def recarga(ind_x, arch):
+    global dir_path, w, h
     if ind_x + 1 > w/2:
-        arch.write("G00 X" + str(X_RECARGA_DER) + "\n")
+        arch.write("G01 X" + str(X_RECARGA_DER) + "\n")
     else:
-        arch.write("G00 X" + str(X_RECARGA_IZQ) + "\n")
+        arch.write("G01 X" + str(X_RECARGA_IZQ) + "\n")
 
-    arch.write("G00 Z" + str(PRES_Z_RECARGA) + "\n")
-    arch.write("G00 Z" + str(Z_MAX) + "\n")
+    arch.write("G01 Z" + str(PRES_Z_RECARGA) + "\n")
+    arch.write("G01 Z" + str(Z_MAX) + "\n")
 
 
 def pintado(mat, direc, path_archivo):
+    global dir_path, w, h
     # direc = 0: pinta horizontal
     # direc = 1: pinta vertical
 
@@ -110,7 +121,7 @@ def pintado(mat, direc, path_archivo):
                 "f22000\n"
                 "S0\n")
         #   Mover cursor al punto inicial
-        a.write("G00 X" + str(X_INIT) + " Y" + str(Y_INIT) + " Z" + str(Z_MAX) + "\n")
+        a.write("G01 X" + str(X_INIT) + " Y" + str(Y_INIT) + " Z" + str(Z_MAX) + "\n")
         cont = 0
         if direc == 0:  # pinta vertical
             mat = mat.tolist()
@@ -144,8 +155,9 @@ def pintado(mat, direc, path_archivo):
 
 
 def genera_gcode(dict_colores):
-    rec_izq = "G00 " + str(X_RECARGA_IZQ)
-    rec_der = "G00 " + str(X_RECARGA_DER)
+    global dir_path, w, h
+    rec_izq = "G01 " + str(X_RECARGA_IZQ)
+    rec_der = "G01 " + str(X_RECARGA_DER)
     for cont_col, elem in enumerate(dict_colores):
         nom_archivo = str(elem) + ".txt"
         path_archivo = dir_path + "/" + nom_archivo
@@ -155,8 +167,9 @@ def genera_gcode(dict_colores):
         # exit()
         pintado(matriz_im, divmod(cont_col, 2)[1], path_archivo)
 
-#
-if __name__ == '__main__':
+
+def main():
+    global dir_path, w, h
     # Crea directorio con nombre unico
     dir_path = "../files/prueba_" + str(datetime.datetime.now()).split(".")[0].replace(" ", "_")
     if not os.path.exists(dir_path):
@@ -178,3 +191,7 @@ if __name__ == '__main__':
     arreglos_por_color = genera_arreglos_por_color(imagen_arr)
     # Genera archivos de texto de gcode
     genera_gcode(arreglos_por_color)
+
+
+if __name__ == '__main__':
+    main()
