@@ -5,7 +5,7 @@ import datetime
 
 
 PATH = '../files/wn0.png'
-CANT_COLORES = 8
+CANT_COLORES = 4
 X_CANVAS = 250
 Y_CANVAS = 250
 X_INIT = -3
@@ -20,7 +20,7 @@ PRES_Z_PINTA = -5
 MODO_PINTURA = 0  # 0 Puntual; 1 Semi diagonal post; 2 Semi diagonal pre
 RECARGA = 10
 X_RECARGA_DER = 5
-X_RECARGA_IZQ = X_CANVAS - 5
+X_RECARGA_IZQ = - 5
 
 
 global dir_path, w, h
@@ -97,9 +97,17 @@ def gesto_pintura(ind_x, ind_y, gesto, direc, arch):
 
 def recarga(ind_x, arch):
     global dir_path, w, h
+    # print "Indice X: ", ind_x
+    # print "Ancho: ", w, h
     if ind_x + 1 > w/2:
+        # print "der"
+        # print "G01 X" + str(X_RECARGA_DER) + "\n"
+        # print X_CANVAS
         arch.write("G01 X" + str(X_RECARGA_DER) + "\n")
     else:
+        # print "izq"
+        # print "G01 X" + str(X_RECARGA_IZQ) + "\n"
+        # print X_CANVAS
         arch.write("G01 X" + str(X_RECARGA_IZQ) + "\n")
 
     arch.write("G01 Z" + str(PRES_Z_RECARGA) + "\n")
@@ -125,11 +133,11 @@ def pintado(mat, direc, path_archivo):
         cont = 0
         if direc == 0:  # pinta vertical
             mat = mat.tolist()
-            print mat
-            print "\n\n"
-            for ind_y, renglon in enumerate(mat):
-                print ind_y, renglon
-                for ind_x, val in enumerate(renglon):
+            # print mat
+            # print "\n\n"
+            for ind_x, renglon in enumerate(mat):
+                # print ind_y, renglon
+                for ind_y, val in enumerate(renglon):
                     if val > 0:
                         # print ind_x + 1
                         gesto_pintura(ind_x, ind_y, MODO_PINTURA, "ver", a)
@@ -140,11 +148,11 @@ def pintado(mat, direc, path_archivo):
         else:  # pinta horizontal
             mat = mat.transpose()
             mat = mat.tolist()
-            print mat
-            print "\n\n"
-            for ind_x, columna in enumerate(mat):
-                print ind_x, columna
-                for ind_y, val in enumerate(columna):
+            # print mat
+            # print "\n\n"
+            for ind_y, columna in enumerate(mat):
+                # print ind_x, columna
+                for ind_x, val in enumerate(columna):
                     if val > 0:
                         # print ind_x + 1
                         gesto_pintura(ind_x, ind_y, MODO_PINTURA, "hor", a)
@@ -159,7 +167,7 @@ def genera_gcode(dict_colores):
     rec_izq = "G01 " + str(X_RECARGA_IZQ)
     rec_der = "G01 " + str(X_RECARGA_DER)
     for cont_col, elem in enumerate(dict_colores):
-        nom_archivo = str(elem) + ".txt"
+        nom_archivo = str(elem) + ".nc"
         path_archivo = dir_path + "/" + nom_archivo
         print path_archivo
         # Crea matriz a partir de arreglo
@@ -178,7 +186,7 @@ def main():
     im = Image.open(PATH)
     # Largo y ancho de la imagen
     w, h = im.size
-    w, h = h, w
+    # w, h = h, w
     # Segmenta imagen en colores limitados; arreglo
     imagen_arr = trunca_imagen(im)
     # Crea matriz a partir de arreglo
