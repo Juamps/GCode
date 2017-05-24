@@ -1,5 +1,6 @@
 from Tkinter import *
 import tkMessageBox
+import tkFileDialog
 import lee_imagen
 from PIL import Image  # read image
 
@@ -18,6 +19,7 @@ variables = 'Path de la imagen', \
             'Coordenada X de recarga derecha\n(mm despues de canvas, ej. 5)', \
             'Coordenada X de recarga izquierda\n(mm antes de canvas, ej. -5)'
 
+entries = []
 
 def genera_codigo(entries):
     lee_imagen.PATH = entries[0][1].get()
@@ -84,9 +86,25 @@ def iniciales(entries):
     entries[13][1].insert(END, lee_imagen.X_RECARGA_IZQ)
 
 
+def browse_file():
+    fname = tkFileDialog.askopenfilename(filetypes=(("Template files", "*.png"), ("All files", "*")))
+    # print fname, type(fname)
+    entries[0][1].delete(0,'end')
+    entries[0][1].insert(END, fname)
+
 def crea_forma(root, variables):
-    entries = []
-    for var in variables:
+    row = Frame(root)
+    lab = Label(row, width=30, text=variables[0], anchor='w', justify='left')
+    ent = Entry(row)
+    entries.append((variables[0], ent))
+    b0 = Button(row, text= '...',
+                command=browse_file)
+    row.pack(side=TOP, fill=X, padx=5, pady=5)
+    lab.pack(side=LEFT)
+    b0.pack(side=RIGHT)
+    ent.pack(side=RIGHT, expand=YES, fill=X)
+
+    for var in variables[1:]:
         row = Frame(root)
         lab = Label(row, width=30, text=var, anchor='w', justify='left')
         ent = Entry(row)

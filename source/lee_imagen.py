@@ -4,7 +4,7 @@ import os
 import datetime
 
 
-PATH = '../files/wn0.png'
+PATH = '../files/wn3.png'
 CANT_COLORES = 4
 X_CANVAS = 250
 Y_CANVAS = 250
