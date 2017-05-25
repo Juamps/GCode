@@ -190,7 +190,7 @@ def main():
     # Segmenta imagen en colores limitados; arreglo
     imagen_arr = trunca_imagen(im)
     # Crea matriz a partir de arreglo
-    matriz_im = np.mat(imagen_arr).reshape(w, h)
+    matriz_im = np.mat(imagen_arr).reshape(h, w)
     # Guarda la nueva imagen
     im = Image.fromarray(np.array(matriz_im, dtype='uint8'))
     save_path = dir_path + "/imagen_segmentada.png"
