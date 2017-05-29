@@ -69,7 +69,7 @@ def genera_arreglos_por_color(arr_img):
     return arreglos_por_color
 
 
-def gesto_pintura(ind_x, ind_y, gesto, direc, arch):
+def gesto_pintura(ind_x, ind_y, gesto, arch):
     global dir_path, w, h
     if gesto == 1:
         #  pinta semi diagonal post
@@ -83,19 +83,14 @@ def gesto_pintura(ind_x, ind_y, gesto, direc, arch):
         arch.write("G01 Z" + str(Z_MAX) + "\n")
     else:
         #  pinta puntual
-        if direc == "ver":
-            inst = "G01 X" + str(ind_x*PASO_X) + " Y" + str(ind_y*PASO_Y) + "\n"
-            arch.write(inst)
-            arch.write("G01 Z" + str(PRES_Z_PINTA) + "\n")
-            arch.write("G01 Z" + str(Z_MAX) + "\n")
-        else:
-            inst = "G01 X" + str(ind_x*PASO_X) + " Y" + str(ind_y*PASO_Y) + "\n"
-            arch.write(inst)
-            arch.write("G01 Z" + str(PRES_Z_PINTA) + "\n")
-            arch.write("G01 Z" + str(Z_MAX) + "\n")
+        inst = "G01 X" + str(ind_x*PASO_X) + " Y" + str(ind_y*PASO_Y) + "\n"
+        arch.write(inst)
+        arch.write("G01 Z" + str(PRES_Z_PINTA) + "\n")
+        arch.write("G01 Z" + str(Z_MAX) + "\n")
 
 
 def recarga(ind_x, arch):
+    # TODO Limpia pincel al recargar pintura
     global dir_path, w, h
     # print "Indice X: ", ind_x
     # print "Ancho: ", w, h
@@ -140,7 +135,7 @@ def pintado(mat, direc, path_archivo):
                 for ind_y, val in enumerate(renglon):
                     if val > 0:
                         # print ind_x + 1
-                        gesto_pintura(ind_x, ind_y, MODO_PINTURA, "ver", a)
+                        gesto_pintura(ind_x, ind_y, MODO_PINTURA, a)
                         cont += 1
                         if cont == RECARGA:
                             recarga(ind_x, a)
@@ -155,12 +150,15 @@ def pintado(mat, direc, path_archivo):
                 for ind_x, val in enumerate(columna):
                     if val > 0:
                         # print ind_x + 1
-                        gesto_pintura(ind_x, ind_y, MODO_PINTURA, "hor", a)
+                        gesto_pintura(ind_x, ind_y, MODO_PINTURA, a)
                         cont += 1
                         if cont == RECARGA:
                             recarga(ind_x, a)
                             cont = 0
 
+        # Regresa cursor al punto inicial
+        a.write("G01 Z" + str(Z_MAX) + "\n")
+        a.write("G01 X" + str(X_INIT) + " Y" + str(Y_INIT) + "\n")
 
 def genera_gcode(dict_colores):
     global dir_path, w, h
@@ -173,7 +171,8 @@ def genera_gcode(dict_colores):
         # Crea matriz a partir de arreglo
         matriz_im = np.mat(dict_colores[elem]).reshape(w, h)
         # exit()
-        pintado(matriz_im, divmod(cont_col, 2)[1], path_archivo)
+        # TODO: REVISAR LA DIRECCION DE PINTADO
+        pintado(matriz_im, divmod(cont_col + 1, 2)[1], path_archivo)
 
 
 def main():
