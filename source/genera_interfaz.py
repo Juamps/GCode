@@ -24,8 +24,8 @@ entries = []
 def genera_codigo(entries):
     lee_imagen.PATH = entries[0][1].get()
     lee_imagen.CANT_COLORES = int(entries[1][1].get())
-    lee_imagen.PASO_X = int(entries[2][1].get())
-    lee_imagen.PASO_Y = int(entries[2][1].get())
+    lee_imagen.PASO_X = float(entries[2][1].get())
+    lee_imagen.PASO_Y = float(entries[2][1].get())
     lee_imagen.X_CANVAS = int(entries[3][1].get())
     lee_imagen.Y_CANVAS = int(entries[4][1].get())
     lee_imagen.X_INIT = int(entries[5][1].get())

@@ -19,8 +19,8 @@ PRES_Z_RECARGA = -8
 PRES_Z_PINTA = -5
 MODO_PINTURA = 0  # 0 Puntual; 1 Semi diagonal post; 2 Semi diagonal pre
 RECARGA = 10
-X_RECARGA_DER = 5
-X_RECARGA_IZQ = - 5
+X_RECARGA_DER = 10
+X_RECARGA_IZQ = - 10
 
 
 global dir_path, w, h
@@ -131,8 +131,11 @@ def pintado(mat, direc, path_archivo):
             # print mat
             # print "\n\n"
             for ind_x, renglon in enumerate(mat):
-                # print ind_y, renglon
-                for ind_y, val in enumerate(renglon):
+                if divmod(ind_x, 2)[1] == 0:
+                    renglon = reversed(list(enumerate(renglon)))
+                else:
+                    renglon = enumerate(renglon)
+                for ind_y, val in renglon:
                     if val > 0:
                         # print ind_x + 1
                         gesto_pintura(ind_x, ind_y, MODO_PINTURA, a)
@@ -146,8 +149,11 @@ def pintado(mat, direc, path_archivo):
             # print mat
             # print "\n\n"
             for ind_y, columna in enumerate(mat):
-                # print ind_x, columna
-                for ind_x, val in enumerate(columna):
+                if divmod(ind_y, 2)[1] == 0:
+                    columna = reversed(list(enumerate(columna)))
+                else:
+                    columna = enumerate(columna)
+                for ind_x, val in columna:
                     if val > 0:
                         # print ind_x + 1
                         gesto_pintura(ind_x, ind_y, MODO_PINTURA, a)
@@ -160,18 +166,18 @@ def pintado(mat, direc, path_archivo):
         a.write("G01 Z" + str(Z_MAX) + "\n")
         a.write("G01 X" + str(X_INIT) + " Y" + str(Y_INIT) + "\n")
 
+
 def genera_gcode(dict_colores):
     global dir_path, w, h
     rec_izq = "G01 " + str(X_RECARGA_IZQ)
     rec_der = "G01 " + str(X_RECARGA_DER)
-    for cont_col, elem in enumerate(dict_colores):
+    for cont_col, elem in enumerate(sorted(dict_colores)):
+        print sum(x >0 for  x in dict_colores[elem])
         nom_archivo = str(elem) + ".nc"
         path_archivo = dir_path + "/" + nom_archivo
         print path_archivo
         # Crea matriz a partir de arreglo
         matriz_im = np.mat(dict_colores[elem]).reshape(w, h)
-        # exit()
-        # TODO: REVISAR LA DIRECCION DE PINTADO
         pintado(matriz_im, divmod(cont_col + 1, 2)[1], path_archivo)
 
 
