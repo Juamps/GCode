@@ -4,7 +4,7 @@ import os
 import datetime
 
 
-PATH = '../files/wn3.png'
+PATH = '../files/imagenes/wn3.png'
 CANT_COLORES = 4
 X_CANVAS = 250
 Y_CANVAS = 250
@@ -20,7 +20,8 @@ PRES_Z_PINTA = -5
 MODO_PINTURA = 0  # 0 Puntual; 1 Semi diagonal post; 2 Semi diagonal pre
 RECARGA = 10
 X_RECARGA_DER = 10
-X_RECARGA_IZQ = - 10
+X_RECARGA_IZQ = -10
+VEL = "G00"
 
 
 global dir_path, w, h
@@ -73,20 +74,20 @@ def gesto_pintura(ind_x, ind_y, gesto, arch):
     global dir_path, w, h
     if gesto == 1:
         #  pinta semi diagonal post
-        inst = "G01 X" + str(ind_x*PASO_X) + " Y" + str(ind_y*PASO_Y) + " Z" + str(Z_MAX) + "\n"
+        inst = VEL + " X" + str(ind_x*PASO_X) + " Y" + str(ind_y*PASO_Y) + " Z" + str(Z_MAX) + "\n"
         arch.write(inst)
         arch.write("G01 Z" + str(PRES_Z_PINTA) + "\n")
     elif gesto == 2:
         # pinta semi diagonal pre
-        inst = "G01 X" + str(ind_x*PASO_X) + " Y" + str(ind_y*PASO_Y) + " Z" + str(PRES_Z_PINTA) + "\n"
+        inst = VEL + " X" + str(ind_x*PASO_X) + " Y" + str(ind_y*PASO_Y) + " Z" + str(PRES_Z_PINTA) + "\n"
         arch.write(inst)
-        arch.write("G01 Z" + str(Z_MAX) + "\n")
+        arch.write(VEL + " Z" + str(Z_MAX) + "\n")
     else:
         #  pinta puntual
-        inst = "G01 X" + str(ind_x*PASO_X) + " Y" + str(ind_y*PASO_Y) + "\n"
+        inst = VEL + " X" + str(ind_x*PASO_X) + " Y" + str(ind_y*PASO_Y) + "\n"
         arch.write(inst)
-        arch.write("G01 Z" + str(PRES_Z_PINTA) + "\n")
-        arch.write("G01 Z" + str(Z_MAX) + "\n")
+        arch.write(VEL + " Z" + str(PRES_Z_PINTA) + "\n")
+        arch.write(VEL + " Z" + str(Z_MAX) + "\n")
 
 
 def recarga(ind_x, arch):
@@ -98,15 +99,22 @@ def recarga(ind_x, arch):
         # print "der"
         # print "G01 X" + str(X_RECARGA_DER) + "\n"
         # print X_CANVAS
-        arch.write("G01 X" + str(X_RECARGA_DER) + "\n")
+        arch.write(VEL + " X" + str(X_RECARGA_DER) + "\n")
+        arch.write(VEL + " Z" + str(PRES_Z_RECARGA) + "\n")
+        arch.write(VEL + " Z" + str(Z_MAX) + "\n")
+        ## Movimiento para no embarrar
+        arch.write(VEL + " X" + str(ind_x*PASO_X) + "\n")
     else:
         # print "izq"
         # print "G01 X" + str(X_RECARGA_IZQ) + "\n"
         # print X_CANVAS
-        arch.write("G01 X" + str(X_RECARGA_IZQ) + "\n")
+        arch.write(VEL + " X" + str(X_RECARGA_IZQ) + "\n")
+        arch.write(VEL + " Z" + str(PRES_Z_RECARGA) + "\n")
+        arch.write(VEL + " Z" + str(Z_MAX) + "\n")
+        ## Movimiento para no embarrar
+        arch.write(VEL + " X" + str(ind_x*PASO_X) + "\n")
 
-    arch.write("G01 Z" + str(PRES_Z_RECARGA) + "\n")
-    arch.write("G01 Z" + str(Z_MAX) + "\n")
+
 
 
 def pintado(mat, direc, path_archivo):
@@ -120,13 +128,15 @@ def pintado(mat, direc, path_archivo):
         #   G17=eje XY
         #   f22000=feed rate (?)
         #   S0 = tiempo de descanso del motor desactivado
+        ## Escribe headers
         a.write("G90G17\n"
                 "f22000\n"
                 "S0\n")
+
         #   Mover cursor al punto inicial
-        a.write("G01 X" + str(X_INIT) + " Y" + str(Y_INIT) + " Z" + str(Z_MAX) + "\n")
-        cont = 0
-        if direc == 0:  # pinta vertical
+        # a.write(VEL + " X" + str(X_INIT) + " Y" + str(Y_INIT) + " Z" + str(Z_MAX) + "\n")
+        cont = RECARGA
+        if direc == 0:  # pinta vertical (direccion de y)
             mat = mat.tolist()
             # print mat
             # print "\n\n"
@@ -138,12 +148,12 @@ def pintado(mat, direc, path_archivo):
                 for ind_y, val in renglon:
                     if val > 0:
                         # print ind_x + 1
-                        gesto_pintura(ind_x, ind_y, MODO_PINTURA, a)
-                        cont += 1
                         if cont == RECARGA:
                             recarga(ind_x, a)
                             cont = 0
-        else:  # pinta horizontal
+                        gesto_pintura(ind_x, ind_y, MODO_PINTURA, a)
+                        cont += 1
+        else:  # pinta horizontal (direccion de x)
             mat = mat.transpose()
             mat = mat.tolist()
             # print mat
@@ -156,21 +166,21 @@ def pintado(mat, direc, path_archivo):
                 for ind_x, val in columna:
                     if val > 0:
                         # print ind_x + 1
-                        gesto_pintura(ind_x, ind_y, MODO_PINTURA, a)
-                        cont += 1
                         if cont == RECARGA:
                             recarga(ind_x, a)
                             cont = 0
+                        gesto_pintura(ind_x, ind_y, MODO_PINTURA, a)
+                        cont += 1
 
         # Regresa cursor al punto inicial
-        a.write("G01 Z" + str(Z_MAX) + "\n")
-        a.write("G01 X" + str(X_INIT) + " Y" + str(Y_INIT) + "\n")
+        a.write(VEL + " Z" + str(Z_MAX) + "\n")
+        a.write(VEL + " X" + str(X_INIT) + " Y" + str(Y_INIT) + "\n")
 
 
 def genera_gcode(dict_colores):
     global dir_path, w, h
-    rec_izq = "G01 " + str(X_RECARGA_IZQ)
-    rec_der = "G01 " + str(X_RECARGA_DER)
+    rec_izq = VEL + " " + str(X_RECARGA_IZQ)
+    rec_der = VEL + " " + str(X_RECARGA_DER)
     for cont_col, elem in enumerate(sorted(dict_colores)):
         print sum(x >0 for  x in dict_colores[elem])
         nom_archivo = str(elem) + ".nc"
@@ -178,7 +188,7 @@ def genera_gcode(dict_colores):
         print path_archivo
         # Crea matriz a partir de arreglo
         matriz_im = np.mat(dict_colores[elem]).reshape(w, h)
-        pintado(matriz_im, divmod(cont_col + 1, 2)[1], path_archivo)
+        pintado(matriz_im, divmod(cont_col, 2)[1], path_archivo)
 
 
 def main():
@@ -191,11 +201,16 @@ def main():
     im = Image.open(PATH)
     # Largo y ancho de la imagen
     w, h = im.size
-    # w, h = h, w
+    ## Invierte coordenadas (para router chico)
+    w, h = h, w
     # Segmenta imagen en colores limitados; arreglo
     imagen_arr = trunca_imagen(im)
     # Crea matriz a partir de arreglo
-    matriz_im = np.mat(imagen_arr).reshape(h, w)
+    # Matriz de imagen si no se invierten las coordenadas antes
+    # matriz_im = np.mat(imagen_arr).reshape(h, w)
+    # Matriz de imagen si se invierten las coordenadas antes
+    matriz_im = np.mat(imagen_arr).reshape(w, h)
+
     # Guarda la nueva imagen
     im = Image.fromarray(np.array(matriz_im, dtype='uint8'))
     save_path = dir_path + "/imagen_segmentada.png"

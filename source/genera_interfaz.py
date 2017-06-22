@@ -7,8 +7,8 @@ from PIL import Image  # read image
 variables = 'Path de la imagen', \
             'Cantidad de grises', \
             'Paso (mm)', \
-            'Ancho Canvas (X max 1200mm)', \
-            'Largo Canvas (Y max 2400mm)', \
+            'Ancho Canvas (X max 1200/700mm)', \
+            'Largo Canvas (Y max 2400/1220mm)', \
             'X inicial (coord)',\
             'Y inicial (coord)', \
             'Z max', \
@@ -30,17 +30,19 @@ def genera_codigo(entries):
     lee_imagen.Y_CANVAS = int(entries[4][1].get())
     lee_imagen.X_INIT = int(entries[5][1].get())
     lee_imagen.Y_INIT = int(entries[6][1].get())
-    lee_imagen.Z_MAX = int(entries[7][1].get())
-    lee_imagen.PRES_Z_RECARGA = int(entries[8][1].get())
-    lee_imagen.PRES_Z_PINTA = int(entries[9][1].get())
+    lee_imagen.Z_MAX = float(entries[7][1].get())
+    lee_imagen.PRES_Z_RECARGA = float(entries[8][1].get())
+    lee_imagen.PRES_Z_PINTA = float(entries[9][1].get())
     lee_imagen.MODO_PINTURA = int(entries[10][1].get())  # 0 Puntual; 1 Semi diagonal post; 2 Semi diagonal pre
-    lee_imagen.RECARGA = int(entries[11][1].get())
-    lee_imagen.X_RECARGA_IZQ = int(entries[13][1].get())
+    lee_imagen.RECARGA = float(entries[11][1].get())
+    lee_imagen.X_RECARGA_IZQ = float(entries[13][1].get())
 
     ## Leer imagen para validar tamanos
     im = Image.open(lee_imagen.PATH)
     # Largo y ancho de la imagen
     w, h = im.size
+    ## Invierte ejes para router chico
+    w, h = h, w
     print w, h
     ans = True
 
@@ -87,7 +89,7 @@ def iniciales(entries):
 
 
 def browse_file():
-    fname = tkFileDialog.askopenfilename(filetypes=(("Template files", "*.png"), ("All files", "*")))
+    fname = tkFileDialog.askopenfilename(filetypes=[("Images1", "*.png"), ("Images2", "*.jpg")])
     # print fname, type(fname)
     entries[0][1].delete(0,'end')
     entries[0][1].insert(END, fname)
