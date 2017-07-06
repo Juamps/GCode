@@ -5,22 +5,22 @@ import datetime
 
 
 PATH = '../files/imagenes/wn3.png'
-CANT_COLORES = 4
-X_CANVAS = 250
-Y_CANVAS = 250
-X_INIT = -3
+CANT_COLORES = 6
+X_CANVAS = 700
+Y_CANVAS = 950
+X_INIT = 0
 X_MAX = 120
 PASO_X = 3
-Y_INIT = -3
+Y_INIT = 0
 Y_MAX = 160
 PASO_Y = 3
 Z_MAX = 5
-PRES_Z_RECARGA = -8
-PRES_Z_PINTA = -5
-MODO_PINTURA = 0  # 0 Puntual; 1 Semi diagonal post; 2 Semi diagonal pre
+PRES_Z_RECARGA = -7
+PRES_Z_PINTA = -3
+MODO_PINTURA = 2  # 0 Puntual; 1 Semi diagonal post; 2 Semi diagonal pre
 RECARGA = 10
 X_RECARGA_DER = 10
-X_RECARGA_IZQ = -10
+X_RECARGA_IZQ = -11
 VEL = "G00"
 
 
@@ -131,7 +131,9 @@ def pintado(mat, direc, path_archivo):
         ## Escribe headers
         a.write("G90G17\n"
                 "f22000\n"
-                "S0\n")
+                "S0\n"
+                "G00 Z05\n"
+                "G00 X0 Y0\n")
 
         #   Mover cursor al punto inicial
         # a.write(VEL + " X" + str(X_INIT) + " Y" + str(Y_INIT) + " Z" + str(Z_MAX) + "\n")
